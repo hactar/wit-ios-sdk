@@ -1,8 +1,8 @@
 # Install
 ## CocoaPods
-    pod 'Wit', '~> 0.1.0'
+    pod 'Wit', '~> 1.0.0'
 ## .framework
-Link with QuartzCore, AVFoundation, MobileCoreServices, SystemConfiguration, Security
+Link with QuartzCore, AudioToolbox, MobileCoreServices, SystemConfiguration, Security
 
 ## FooViewController.h
     @interface FooController : UIViewController <WitDelegate>
@@ -18,11 +18,15 @@ Link with QuartzCore, AVFoundation, MobileCoreServices, SystemConfiguration, Sec
     - (void)witDidGraspIntent:(NSString *)intent entities:(NSDictionary *)entities body:(NSString *)body error:(NSError *)e {
     }
 
-# Notifications
-    kWitNotificationUploadProgress = userInfo.progress shows current upload progress
-    kWitNotificationRecordingStarted = recording just started
-    kWitNotificationRecordingCompleted = recording stopped (userInfo.error shows error, if any)
-    kWitNotificationResponseReceived = received Wit API response
+# Breaking changes from 0.1 to 1.0
+- Notifications overhaul to match Javascript widget more closely, only notifications are now:
+  - kWitNotificationAudioStart: recording started
+  - kWitNotificationAudioEnd: recording ended
+- Some redundant delegate methods have been removed, to keep the interface lean.
+  - witDidStartAnalyzing: analysis starts when recording ends (kWitNotificationAudioEnd)
+  - witDidStopAnalyzing: analysis stops when response arrives...
+- Unused [Wit sharedInstance].instanceId has been removed
+- Sounds are gone! Apps can play sounds when reacting to Wit events, but that's not the SDK role
 
 # Wit.framework
 cf. https://github.com/jverkoey/iOS-Framework#first_parties

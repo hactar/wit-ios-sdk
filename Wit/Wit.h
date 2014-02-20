@@ -6,10 +6,12 @@
 #import <Foundation/Foundation.h>
 #import <AVFoundation/AVFoundation.h>
 #import "WITMicButton.h"
+#import "WITRecorder.h"
+#import "WITUploader.h"
 
 @protocol WitDelegate;
 
-@interface Wit : NSObject <AVAudioPlayerDelegate>
+@interface Wit : NSObject <WITRecorderDelegate, WITUploaderDelegate>
 /**
  Delegate to send feedback for the application
  */
@@ -21,20 +23,9 @@
 @property(nonatomic, strong) id commandDelegate;
 
 /**
- Paths to sounds played at various eventss
- keys are startRecording, stopRecording, failedRecording
- */
-@property (strong) NSDictionary* sounds;
-
-/**
  Access token used to contact Wit.ai
  */
 @property (strong) NSString* accessToken;
-
-/**
- Wit Instance ID used to contact Wit.ai
- */
-@property (strong) NSString* instanceId;
 
 /**
  Singleton instance accessor
@@ -47,9 +38,14 @@
 - (void)toggleCaptureVoiceIntent:(id)sender;
 
 /**
- Cancel the current recording if any.
+ Starts a new recording
  */
-- (void)cancel;
+- (void)start;
+
+/**
+ Stops the current recording if any
+ */
+- (void)stop;
 
 /**
  YES if Wit is recording audio
@@ -71,16 +67,6 @@
 - (void)witDidGraspIntent:(NSString *)intent entities:(NSDictionary *)entities body:(NSString *)body error:(NSError*)e;
 
 @optional
-/**
- Called when Wit start analyzing the audio entry
- */
-- (void)witDidStartAnalyzing;
-
-/**
- Called when Wit stop analyzing the audio entry
- */
-- (void)witDidStopAnalyzing;
-
 /**
  Called when Wit start recording the audio entry
  */
