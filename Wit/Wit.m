@@ -212,7 +212,7 @@
     }
     NSString *messageId = resp[kWitKeyMsgId];
 
-    [self.delegate witDidGraspIntent:outcomes messageId:messageId customData:customData error:error];
+    [self.delegate witDidGraspIntent:outcomes messageId:messageId customData:customData error:error fullResponse: resp];
 
 }
 
@@ -264,8 +264,8 @@
     if ([customData isKindOfClass:[WitSession class]]) {
         [self.delegate didReceiveConverseError:e witSession:customData];
     } else {
-        if ([self.delegate respondsToSelector:@selector(witDidGraspIntent:messageId:customData:error:)]) {
-            [self.delegate witDidGraspIntent:nil messageId:nil customData:customData error:e];
+        if ([self.delegate respondsToSelector:@selector(witDidGraspIntent:messageId:customData:error:fullResponse:)]) {
+            [self.delegate witDidGraspIntent:nil messageId:nil customData:customData error:e fullResponse:nil];
         }
     }
     

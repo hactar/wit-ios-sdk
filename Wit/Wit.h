@@ -201,7 +201,7 @@
  * param customData any data attached when starting the request. See [Wit sharedInstance toggleCaptureVoiceIntent:... (id)customData] and [[Wit sharedInstance] start:... (id)customData];
  * param error Nil if no error occurred during processing
  */
-- (void)witDidGraspIntent:(NSArray *)outcomes messageId:(NSString *)messageId customData:(id)customData error:(NSError *)error;
+- (void)witDidGraspIntent:(NSArray *)outcomes messageId:(NSString *)messageId customData:(id)customData error:(NSError *)error fullResponse: (NSDictionary *) response;
 
 /**
  * When using the hands free voice activity detection option (WITVadConfigFull), this callback will be called when the microphone started to listen
