@@ -42,6 +42,13 @@
 @property (nonatomic, copy) NSString *speechRecognitionLocale;
 
 /**
+ Allows you to override the server address, if you are using a proxy or such. This should be left
+ untouched in most cases.
+ The default value is @"https://api.wit.ai"
+ */
+@property (nonatomic, copy) NSString *serverAddress;
+
+/**
  * Configure the voice activity detection algorithm:
  * - WITVadConfigDisabled
  * - WITVadConfigDetectSpeechStop (default)

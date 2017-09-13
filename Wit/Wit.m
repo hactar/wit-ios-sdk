@@ -68,7 +68,7 @@
     NSDictionary *context = [self.wcs contextFillup:self.state.context];
     NSDate *start = [NSDate date];
     NSString *contextEncoded = [WITContextSetter jsonEncode:context];
-    NSString *urlString = [NSString stringWithFormat:@"https://api.wit.ai/message?q=%@&v=%@&context=%@&verbose=true", urlencodeString(string), kWitAPIVersion, contextEncoded];
+    NSString *urlString = [NSString stringWithFormat:@"%@/message?q=%@&v=%@&context=%@&verbose=true", self.serverAddress, urlencodeString(string), kWitAPIVersion, contextEncoded];
     NSMutableURLRequest* req = [NSMutableURLRequest requestWithURL:[NSURL URLWithString: urlString]];
     [req setCachePolicy:NSURLRequestReloadIgnoringLocalCacheData];
     [req setTimeoutInterval:30.0];
@@ -94,7 +94,7 @@
     NSDictionary *context = session.context;
     NSDate *start = [NSDate date];
 
-    NSString *urlString = [NSString stringWithFormat:@"https://api.wit.ai/converse?session_id=%@&v=%@&verbose=true", session.sessionID, kWitAPIVersion];
+    NSString *urlString = [NSString stringWithFormat:@"%@/converse?session_id=%@&v=%@&verbose=true", self.serverAddress, session.sessionID, kWitAPIVersion];
     if (string) {
         urlString = [urlString stringByAppendingString:[NSString stringWithFormat:@"&q=%@", urlencodeString(string)]];
     }
@@ -287,6 +287,7 @@
     self.vadTimeout = 7000;
     self.vadSensitivity = 0;
     self.speechRecognitionLocale = @"en-US";
+    self.serverAddress = kWitAPIUrl;
 }
 
 - (instancetype)init {
