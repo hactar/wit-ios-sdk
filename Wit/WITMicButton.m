@@ -219,20 +219,23 @@ static const CGFloat kMicMargin = 40.0f;
 
 #pragma mark - UIButton target
 - (void)buttonPressed:(id)sender {
+    if ([sender state] != UIGestureRecognizerStateBegan && [sender state] != UIGestureRecognizerStateEnded ) {
+        return;
+    }
     AVAudioSession *audioSession = [AVAudioSession sharedInstance];
     Wit *wit = [Wit sharedInstance];
     
     if ([audioSession respondsToSelector:@selector(requestRecordPermission:)]) {
         [audioSession requestRecordPermission:^(BOOL granted) {
             if (granted) {
-                [wit toggleCaptureVoiceIntent:self.session];
+                [wit toggleCaptureVoiceIntent:self.session disableVADViaOverride: [sender isKindOfClass:[UILongPressGestureRecognizer class]]  ];
             } else {
                 NSLog(@"No mic permission, sorry");
             }
         }];
     }
     else{
-        [wit toggleCaptureVoiceIntent:self.session];
+        [wit toggleCaptureVoiceIntent:self.session disableVADViaOverride: [sender isKindOfClass:[UILongPressGestureRecognizer class]]];
     }
 }
 
@@ -289,10 +292,16 @@ static const CGFloat kMicMargin = 40.0f;
     //                                                 name:kWitNotificationAudioEnd object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(newAudioLevel:) name:kWitNotificationAudioPowerChanged object:nil];
     
-    // retinarize
+    // retina
     if ([self respondsToSelector:@selector(setContentScaleFactor:)]) {
         self.contentScaleFactor = [[UIScreen mainScreen] scale];
     }
+    
+    
+    UILongPressGestureRecognizer *longPress = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(buttonPressed:)];
+    longPress.minimumPressDuration = .3;
+    [self addGestureRecognizer:longPress];
+    
     
     // apply style
     [self defaultStyles];

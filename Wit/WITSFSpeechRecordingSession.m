@@ -24,6 +24,9 @@
     AVAudioEngine  *audioEngine;
     float average1;
     float average2;
+    NSTimer *vadTimer;
+    NSTimeInterval noWordsSpokenTime;
+    BOOL wordSpoken;
     
 }
 
@@ -55,7 +58,7 @@
                     NSDictionary *userInfo = @{
                                                NSLocalizedDescriptionKey: NSLocalizedString(@"Speech recognition not authorized. Please enable in the iOS Settings for this app.", nil)};
                     NSError *tempError = [NSError errorWithDomain:@"WitRecognition" code:SFSpeechRecognizerAuthorizationStatusDenied userInfo:userInfo];
-            
+                    
                     [self.delegate recordingSessionReceivedError: tempError];
                     break;
                 }
@@ -92,36 +95,36 @@
 
 - (NSString *) fixGermanNumbers: (NSString *) numbers {
     return [[[[[[[[[[numbers stringByReplacingOccurrencesOfString:@" eins" withString:@" 1"]
-            stringByReplacingOccurrencesOfString:@" zwei" withString:@" 2"]
-            stringByReplacingOccurrencesOfString:@" drei" withString:@" 3"]
-            stringByReplacingOccurrencesOfString:@" vier" withString:@" 4"]
-            stringByReplacingOccurrencesOfString:@" fünf" withString:@" 5"]
-            stringByReplacingOccurrencesOfString:@" sechs" withString:@" 6"]
-            stringByReplacingOccurrencesOfString:@" sieben" withString:@" 7"]
-            stringByReplacingOccurrencesOfString:@" acht" withString:@"8"]
-            stringByReplacingOccurrencesOfString:@" neun" withString:@"9"]
+                    stringByReplacingOccurrencesOfString:@" zwei" withString:@" 2"]
+                   stringByReplacingOccurrencesOfString:@" drei" withString:@" 3"]
+                  stringByReplacingOccurrencesOfString:@" vier" withString:@" 4"]
+                 stringByReplacingOccurrencesOfString:@" fünf" withString:@" 5"]
+                stringByReplacingOccurrencesOfString:@" sechs" withString:@" 6"]
+               stringByReplacingOccurrencesOfString:@" sieben" withString:@" 7"]
+              stringByReplacingOccurrencesOfString:@" acht" withString:@"8"]
+             stringByReplacingOccurrencesOfString:@" neun" withString:@"9"]
             stringByReplacingOccurrencesOfString:@" zehn" withString:@"10"];
 }
 
 - (void) start {
     NSLog(@"START CALLED");
-      NSError *error;
+    NSError *error;
     
     /*
-    AVAudioSession *audiosession = [AVAudioSession sharedInstance];
-   
-    [audiosession setMode: AVAudioSessionModeMeasurement error:&error];
-    if (error) {
-        NSLog(@"mode error was %@", error);
-    }
+     AVAudioSession *audiosession = [AVAudioSession sharedInstance];
+     
+     [audiosession setMode: AVAudioSessionModeMeasurement error:&error];
+     if (error) {
+     NSLog(@"mode error was %@", error);
+     }
      */
-     /*
-    [audiosession setActive:YES withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation error:&error];
-    if (error) {
-        NSLog(@"activate error was %@", error);
-    }
+    /*
+     [audiosession setActive:YES withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation error:&error];
+     if (error) {
+     NSLog(@"activate error was %@", error);
+     }
      */
-  
+    
     recognitionRequest = [[SFSpeechAudioBufferRecognitionRequest alloc] init];
     
     AVAudioInputNode *inputNode = audioEngine.inputNode;
@@ -133,12 +136,14 @@
     // We keep a reference to the task so that it can be cancelled.
     
     recognitionTask = [speechRecognizer recognitionTaskWithRequest:recognitionRequest resultHandler:^(SFSpeechRecognitionResult * _Nullable result, NSError * _Nullable error) {
+        noWordsSpokenTime = 0;
+        wordSpoken = YES;
         BOOL isFinal = result.isFinal;
         NSLog(@"Speech result %d: %@", isFinal, result.bestTranscription.formattedString);
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [self.delegate recordingSessionDidRecognizePreviewText:result.bestTranscription.formattedString final: isFinal];
-
-    });
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.delegate recordingSessionDidRecognizePreviewText:result.bestTranscription.formattedString final: isFinal];
+            
+        });
         
         if (error || isFinal) {
             [audioEngine stop];
@@ -156,7 +161,7 @@
                     } else {
                         [[Wit sharedInstance] interpretString:[self fixGermanNumbers: result.bestTranscription.formattedString] customData:nil];
                     }
-
+                    
                 }
                 if (error) {
                     [self.delegate recordingSessionReceivedError: error];
@@ -170,16 +175,16 @@
         [recognitionRequest appendAudioPCMBuffer:buffer];
         
         //NSData* audio = [NSData dataWithBytes:buffer.audioBufferList->mBuffers[0].mData length:buffer.audioBufferList->mBuffers[0].mDataByteSize];
-       // [self.vad gotAudioSamples:audio];
+        // [self.vad gotAudioSamples:audio];
         
         UInt32 inNumberFrames = buffer.frameLength;
-
+        
         Float32* samples = (Float32*)buffer.floatChannelData[0];
         Float32 avgValue = 0;
-            
+        
         vDSP_meamgv((Float32*)samples, 1, &avgValue, inNumberFrames);
         average1 = (0.9*((avgValue==0)?-100:20.0*log10f(avgValue))) + ((1-0.9)*average1 + 20) ;
-
+        
         
         
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -193,6 +198,25 @@
     [self.delegate recordingSessionDidStartRecording];
     if (error) {
         NSLog(@"start and return error was %@", error);
+    }
+    if (!vadTimer && _vadEnabled == WITVadConfigDetectSpeechStop) {
+        noWordsSpokenTime = 0;
+        wordSpoken = NO;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            vadTimer = [NSTimer scheduledTimerWithTimeInterval:0.1 repeats:YES block:^(NSTimer * _Nonnull timer) {
+                if (wordSpoken) {
+                    noWordsSpokenTime = noWordsSpokenTime + .1;
+                    if (noWordsSpokenTime > 1.5) {
+                        noWordsSpokenTime = 0;
+                        [timer invalidate];
+                        vadTimer = nil;
+                        [self stop];
+                    }
+                }
+                
+            }];
+        });
+        
     }
     
 }
@@ -208,6 +232,8 @@
 }
 
 - (void)stop {
+    [vadTimer invalidate];
+    vadTimer = nil;
     [audioEngine stop];
     [recognitionRequest endAudio];
     NSLog(@"Stopping recording");

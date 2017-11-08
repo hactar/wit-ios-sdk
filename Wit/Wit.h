@@ -87,6 +87,13 @@
  */
 - (void)start:(id)customData;
 
+
+/**
+ * Same as the start method but allow a custom object to be passed, which will be passed back as an argument of the
+ * [self.delegate witDidGraspIntent:... customData:(id)customData]. This is how you should link a request to a response, if needed. You can also disable VAD detection, useful for UI elements where the user holds down the button while speaking.
+ */
+- (void)start: (id)customData disableVADViaOverride: (BOOL) disableVAD;
+
 /**
  * Start / stop the audio processing. Once the API response is received, [self.delegate witDidGraspIntent:...] method will be called.
  */
@@ -96,6 +103,12 @@
  * Same as toggleCaptureVoiceIntent, allowing you to pass a customData object to the [self start:(id)customData] function.
  */
 - (void)toggleCaptureVoiceIntent:(id) customData;
+
+/**
+ * Same as toggleCaptureVoiceIntent, allowing you to pass a customData object to the [self start:(id)customData] function and override the VAD setting, for example if the user is holding down a record button.
+ */
+- (void)toggleCaptureVoiceIntent:(id)customData disableVADViaOverride: (BOOL) disableVAD;
+
 
 
 /**
@@ -123,7 +136,7 @@
 #pragma mark - Context management
 
 /**
- * Sets context from NSDictionary. Merge semantics! 
+ * Sets context from NSDictionary. Merge semantics!
  * See the context documentation in our doc for for more information:  http://wit.ai/docs/http/20140923#context-link
  */
 - (void)setContext:(NSDictionary *)dict;
@@ -158,7 +171,7 @@
 
 /**
  Called when your story triggers an action and includes any new entities from Wit. Update session.context with any keys required for the next step of the story and return it here, wit-ios-sdk will automatically perform the next converse request for you and call the appropriate delegate method. Implementing this is required if you are using the converse api.
-
+ 
  @param action The action to perform, as specified in your story.
  @param entities Any entities Wit found, as specified in your story.
  @param session The previous WitSession object. Update session.context with any context changes (these will be sent to the Wit server) and optionally store any futher data in session.customData (this will not be sent to the Wit server) and return this WitSession.
@@ -169,7 +182,7 @@
 
 /**
  Called when your story wants your app to display a message. Update session.context with any keys required for the next step of the story and return it here, wit-ios-sdk will automatically perform the next converse request for you and call the appropriate delegate method. wit-ios-sdk will automatically perform the next converse request for you and call the appropriate delegate method. Implementing this is required if you are using the converse api.
-
+ 
  @param message The message to display
  @param session The previous WitSession object. Update session.context with any context changes (these will be sent to the Wit server) and optionally store any futher data in session.customData (this will not be sent to the Wit server) and return this WitSession.
  @param confidence The confidence that Wit correctly guessed the users intent, between 0.0 and 1.0
@@ -179,14 +192,14 @@
 
 /**
  Called when your story has completed. Implementing this is required if you are using the converse api.
-
+ 
  @param session The WitSession passed in from your last delegate call.
  */
 - (void) didStopSession: (WitSession *) session;
 
 /**
  Called when you receive an error from the converse endpoint. Implementing this is required if you are using the converse api.
-
+ 
  @param error The NSError you received.
  @param session The session that received the error.
  */
@@ -201,6 +214,8 @@
  * param customData any data attached when starting the request. See [Wit sharedInstance toggleCaptureVoiceIntent:... (id)customData] and [[Wit sharedInstance] start:... (id)customData];
  * param error Nil if no error occurred during processing
  */
+- (void)witDidGraspIntent:(NSArray *)outcomes messageId:(NSString *)messageId customData:(id)customData error:(NSError *)error;
+
 - (void)witDidGraspIntent:(NSArray *)outcomes messageId:(NSString *)messageId customData:(id)customData error:(NSError *)error fullResponse: (NSDictionary *) response;
 
 /**
@@ -246,3 +261,4 @@
 static __unused NSString *const kWitNotificationAudioPowerChanged = @"WITAudioPowerChanged";
 static int const kWitAudioSampleRate = 16000;
 static int const kWitAudioBitDepth = 16;
+

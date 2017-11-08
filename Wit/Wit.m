@@ -28,30 +28,37 @@
 }
 
 - (void)toggleCaptureVoiceIntent:(id)customData {
+    [self toggleCaptureVoiceIntent:customData disableVADViaOverride:nil];
+}
+
+- (void)toggleCaptureVoiceIntent:(id)customData disableVADViaOverride: (BOOL) disableVAD {
     if ([self isRecording]) {
         [self stop];
     } else {
-        [self start: customData];
+        [self start: customData disableVADViaOverride:NO];
     }
 }
 
 - (void)start {
-    [self start: nil];
+    [self start: nil disableVADViaOverride:NO];
 }
 
+- (void)start:(id)customData {
+    [self start:customData disableVADViaOverride:NO];
+}
 
-- (void)start: (id)customData {
+- (void)start: (id)customData disableVADViaOverride: (BOOL) disableVAD {
     if ([SFSpeechRecognizer class]) {
         self.recordingSession = [[WITSFSpeechRecordingSession alloc] initWithWitContext:self.state.context
                                                                                  locale: self.speechRecognitionLocale
-                                                                     vadEnabled:[Wit sharedInstance].detectSpeechStop withWitToken:[WITState sharedInstance].accessToken
+                                                                             vadEnabled: disableVAD ? WITVadConfigDisabled : [Wit sharedInstance].detectSpeechStop withWitToken:[WITState sharedInstance].accessToken
                                                                              customData: customData withDelegate:self];
     } else {
         self.recordingSession = [[WITRecordingSession alloc] initWithWitContext:self.state.context
-                                                                     vadEnabled:[Wit sharedInstance].detectSpeechStop withWitToken:[WITState sharedInstance].accessToken
+                                                                     vadEnabled: disableVAD ? WITVadConfigDisabled : [Wit sharedInstance].detectSpeechStop withWitToken:[WITState sharedInstance].accessToken
                                                                    withDelegate:self];
     }
-
+    
     self.recordingSession.customData = customData;
     self.recordingSession.delegate = self;
 }
@@ -74,18 +81,18 @@
     [req setTimeoutInterval:30.0];
     [req setValue:[NSString stringWithFormat:@"Bearer %@", self.accessToken] forHTTPHeaderField:@"Authorization"];
     [req setValue:@"application/json" forHTTPHeaderField:@"Accept"];
-
+    
     
     NSURLSession *session = [NSURLSession sharedSession];
     
     [[session dataTaskWithRequest:req
-            completionHandler:^(NSData *data,
-                                NSURLResponse *response,
-                                NSError *connectionError) {
-                
-                [self witResponseHandler:response start:start type:@"message" data:data
-                              customData:customData connectionError:connectionError];
-            }] resume];
+                completionHandler:^(NSData *data,
+                                    NSURLResponse *response,
+                                    NSError *connectionError) {
+                    
+                    [self witResponseHandler:response start:start type:@"message" data:data
+                                  customData:customData connectionError:connectionError];
+                }] resume];
 }
 
 
@@ -93,7 +100,7 @@
 - (void)converseWithString:(NSString *)string witSession:(WitSession *)session {
     NSDictionary *context = session.context;
     NSDate *start = [NSDate date];
-
+    
     NSString *urlString = [NSString stringWithFormat:@"%@/converse?session_id=%@&v=%@&verbose=true", self.serverAddress, session.sessionID, kWitAPIVersion];
     if (string) {
         urlString = [urlString stringByAppendingString:[NSString stringWithFormat:@"&q=%@", urlencodeString(string)]];
@@ -101,7 +108,7 @@
     NSMutableURLRequest* req = [NSMutableURLRequest requestWithURL:[NSURL URLWithString: urlString]];
     [req setHTTPMethod:@"POST"];
     NSError *serializationError = nil;
-
+    
     if (session.context) {
         [req setHTTPBody:[NSJSONSerialization dataWithJSONObject:context
                                                          options:0
@@ -111,7 +118,7 @@
     if (serializationError) {
         NSLog(@"Wit could not serialize your context: %@", serializationError.localizedDescription);
     }
-
+    
     
     [req setCachePolicy:NSURLRequestReloadIgnoringLocalCacheData];
     [req setTimeoutInterval:30];
@@ -123,13 +130,13 @@
     NSURLSession *urlSsession = [NSURLSession sharedSession];
     
     [[urlSsession dataTaskWithRequest:req
-                completionHandler:^(NSData *data,
-                                    NSURLResponse *response,
-                                    NSError *connectionError) {
-                    
-                    [self witResponseHandler:response start:start type:@"converse" data:data
-                                  customData:session connectionError:connectionError];
-                }] resume];
+                    completionHandler:^(NSData *data,
+                                        NSURLResponse *response,
+                                        NSError *connectionError) {
+                        
+                        [self witResponseHandler:response start:start type:@"converse" data:data
+                                      customData:session connectionError:connectionError];
+                    }] resume];
 }
 
 -(void)witResponseHandler:(NSURLResponse *)response start:(NSDate *)start type:(NSString *)type data:(NSData *)data
@@ -185,8 +192,8 @@
     }
     if([type isEqual:@"message"]){
         [self processMessage:resp customData:customData];
-
-
+        
+        
     } else if([type isEqual: @"converse"]){
         [self processConverse:resp customData:customData];
     }
@@ -205,15 +212,19 @@
         NSString *errorDesc = [NSString stringWithFormat:@"Code %@: %@", error[@"code"], error[@"message"]];
         return [self errorWithDescription:errorDesc customData:customData];
     }
-
+    
     NSArray* outcomes = resp[kWitKeyOutcome];
     if (!outcomes || [outcomes count] == 0) {
         return [self errorWithDescription:@"No outcome" customData:customData];
     }
     NSString *messageId = resp[kWitKeyMsgId];
-
-    [self.delegate witDidGraspIntent:outcomes messageId:messageId customData:customData error:error fullResponse: resp];
-
+    
+    if ([self.delegate respondsToSelector:@selector(witDidGraspIntent:messageId:customData:error:fullResponse:)]) {
+        [self.delegate witDidGraspIntent:outcomes messageId:messageId customData:customData error:error fullResponse: resp];
+    } else {
+        [self.delegate witDidGraspIntent:outcomes messageId:messageId customData:customData error:error];
+    }
+    
 }
 
 - (void)processConverse:(NSDictionary *)response customData:(id)customData {
@@ -223,13 +234,13 @@
         NSString *errorDesc = [NSString stringWithFormat:@"Code %@: %@", error[@"code"], error[@"message"]];
         return [self errorWithDescription:errorDesc customData:customData];
     }
-
-
+    
+    
     
     WitSession *session = customData;
     
     NSString *type = response[@"type"];
-  
+    
     if ([type isEqualToString:@"action"]) {
         session = [self.delegate didReceiveAction:response[@"action"] entities:response[@"entities"] witSession:session confidence:[response[@"confidence"] doubleValue]];
     } else if ([type isEqualToString:@"msg"])  {
@@ -249,14 +260,7 @@
             [self converseWithString:nil witSession:session];
         });
     }
-    /*
-    NSMutableArray *resp_array = [[NSMutableArray alloc]init];
-    [resp_array addObject:resp];
 
-    NSString *messageId = resp[kWitKeyMsgId];
-    
-    [self.delegate witDidGraspIntent:resp_array messageId:messageId customData:customData error:error];
-     */
     
 }
 
@@ -308,7 +312,7 @@
     dispatch_once(&once, ^{
         instance = [[Wit alloc] init];
     });
-
+    
     return instance;
 }
 
@@ -364,7 +368,7 @@
 }
 
 - (void)recordingSessionRecorderPowerChanged:(float)power {
-
+    
 }
 
 - (void)recordingSessionGotResponse:(NSDictionary *)resp customData:(id)customData error:(NSError *)err sender:(id) sender {
@@ -375,3 +379,4 @@
 }
 
 @end
+

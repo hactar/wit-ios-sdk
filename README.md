@@ -6,7 +6,7 @@ The wit.ai iOS SDK is the easiest way to integrate [wit.ai](https://wit.ai) feat
 
 The SDK can capture intents and entities from:
 
-- the microphone of the device (GET /message API only)
+- the microphone of the device
 - text
 
 Supports both the /converse and the /message API. Note: the /converse (story) based API has been **deprecated** - see [our blog post](https://wit.ai/blog/2017/07/27/sunsetting-stories) for a migration plan.
@@ -44,7 +44,7 @@ Access token used to contact Wit.ai
 Configure the voice activity detection algorithm:
 - WITVadConfigDisabled
 - WITVadConfigDetectSpeechStop (default)
-- WITVadConfigFull
+- WITVadConfigFull (<iOS 10 only)
 @property WITVadConfig detectSpeechStop;
 ```
 
