@@ -35,7 +35,7 @@
     if ([self isRecording]) {
         [self stop];
     } else {
-        [self start: customData disableVADViaOverride:NO];
+        [self start: customData disableVADViaOverride:disableVAD];
     }
 }
 
