@@ -226,6 +226,12 @@
 - (void)witActivityDetectorStarted;
 
 /**
+ * Called just before recording, useful if you would like to do something you can't do while the device records (e.g. vibrating)
+ */
+
+- (void)witWillStartRecording;
+
+/**
  * Called when the streaming of the audio data to the Wit API starts.
  * The streaming to the Wit API starts right after calling one of the start methods when
  * detectSpeechStop is equal to WITVadConfigDisabled or WITVadConfigDetectSpeechStop.

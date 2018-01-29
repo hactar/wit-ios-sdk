@@ -11,9 +11,10 @@
 @protocol WITRecordingSessionDelegate <NSObject>
 
 -(void)recordingSessionActivityDetectorStarted;
+-(void)recordingSessionWillStartRecording;
 -(void)recordingSessionDidStartRecording;
 -(void)recordingSessionDidStopRecording;
-- (void) recordingSessionReceivedError: (NSError *) error;
+-(void)recordingSessionReceivedError: (NSError *) error;
 -(void)recordingSessionDidRecognizePreviewText: (NSString *) previewText final: (BOOL) isFinal;
 -(void)recordingSessionDidDetectSpeech;
 -(void)recordingSessionRecorderGotChunk:(NSData *)chunk;
@@ -22,3 +23,4 @@
 -(void)stop;
 
 @end
+

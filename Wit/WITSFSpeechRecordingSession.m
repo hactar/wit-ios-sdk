@@ -38,7 +38,6 @@
         self.delegate = delegate;
         _vadEnabled = vadEnabled;
         self.witToken = witToken;
-        //self.vad = [[WITVad alloc] init];
         
         
         speechRecognizer = [[SFSpeechRecognizer alloc] initWithLocale:[NSLocale localeWithLocaleIdentifier:locale]];
@@ -75,7 +74,9 @@
                     
                 case SFSpeechRecognizerAuthorizationStatusAuthorized:
                     NSLog(@"Speech authorized");
-                    [ self start];
+                    [self.delegate recordingSessionWillStartRecording];
+                    [self start];
+                    
                     break;
                     
                 case SFSpeechRecognizerAuthorizationStatusNotDetermined:
@@ -197,7 +198,7 @@
     [audioEngine startAndReturnError:&error];
     [self.delegate recordingSessionDidStartRecording];
     if (error) {
-        NSLog(@"[WIT] start and return error was %@", error);
+        NSLog(@"start and return error was %@", error);
     }
     if (!vadTimer && _vadEnabled == WITVadConfigDetectSpeechStop) {
         noWordsSpokenTime = 0;
@@ -221,7 +222,7 @@
     
 }
 - (void)speechRecognizer:(SFSpeechRecognizer *)speechRecognizer availabilityDidChange:(BOOL)available {
-    NSLog(@"[WIT] speech recognizer is now %d", available);
+    NSLog(@"speech recognizer is now %d", available);
 }
 
 - (BOOL)isRecording {
@@ -236,11 +237,8 @@
     vadTimer = nil;
     [audioEngine stop];
     [recognitionRequest endAudio];
-    
-    dispatch_async(dispatch_get_main_queue(), ^{
-        NSNumber *newPower = [[NSNumber alloc] initWithFloat:-999];
-        [[NSNotificationCenter defaultCenter] postNotificationName:kWitNotificationAudioPowerChanged object:newPower];
-    });
+    NSLog(@"Stopping recording");
 }
 
 @end
+

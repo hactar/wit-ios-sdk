@@ -260,7 +260,7 @@
             [self converseWithString:nil witSession:session];
         });
     }
-
+    
     
 }
 
@@ -328,6 +328,12 @@
 - (void)recordingSessionActivityDetectorStarted {
     if ([self.delegate respondsToSelector:@selector(witActivityDetectorStarted)]) {
         [self.delegate witActivityDetectorStarted];
+    }
+}
+
+- (void)recordingSessionWillStartRecording {
+    if ([self.delegate respondsToSelector:@selector(witWillStartRecording)]) {
+        [self.delegate witWillStartRecording];
     }
 }
 
