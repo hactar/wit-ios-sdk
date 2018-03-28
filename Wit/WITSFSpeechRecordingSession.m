@@ -238,6 +238,11 @@
     [audioEngine stop];
     [recognitionRequest endAudio];
     NSLog(@"Stopping recording");
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSNumber *newPower = [[NSNumber alloc] initWithFloat:  -999 ];
+        [[NSNotificationCenter defaultCenter] postNotificationName:kWitNotificationAudioPowerChanged object:newPower];
+    });
 }
 
 @end
