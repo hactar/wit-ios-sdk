@@ -189,7 +189,7 @@
         
         
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSNumber *newPower = [[NSNumber alloc] initWithFloat:average1];
+            NSNumber *newPower = [[NSNumber alloc] initWithFloat: audioEngine.isRunning ? average1 : -999 ];
             [[NSNotificationCenter defaultCenter] postNotificationName:kWitNotificationAudioPowerChanged object:newPower];
         });
         
