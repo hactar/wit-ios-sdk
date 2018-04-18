@@ -125,6 +125,7 @@
  * Sends an NSString to wit.ai for interpretation. Same as sending a voice input, but with text.
  */
 - (void)interpretString:(NSString *)string customData:(id)customData;
+- (void)interpretString:(NSString *) string customData:(id)customData inputType: (NSString *) inputType;
 
 /**
  * Sends an NSString to wit.ai for conversation. To get the next message in the conversation.

@@ -71,12 +71,23 @@
     return [self.recordingSession isRecording];
 }
 
-- (void)interpretString:(NSString *) string customData:(id)customData {
+
+- (void)interpretString:(NSString *) string customData:(id)customData  {
+    [self interpretString:string customData:customData inputType:nil];
+}
+- (void)interpretString:(NSString *) string customData:(id)customData inputType: (NSString *) inputType {
     NSDictionary *context = [self.wcs contextFillup:self.state.context];
     NSDate *start = [NSDate date];
     NSString *contextEncoded = [WITContextSetter jsonEncode:context];
     NSString *urlString = [NSString stringWithFormat:@"%@/message?q=%@&v=%@&context=%@&verbose=true", self.serverAddress, urlencodeString(string), kWitAPIVersion, contextEncoded];
-    NSMutableURLRequest* req = [NSMutableURLRequest requestWithURL:[NSURL URLWithString: urlString]];
+    NSURLComponents *urlComponents = [NSURLComponents componentsWithString:urlString];
+    if (inputType) {
+        NSMutableArray *items = [NSMutableArray arrayWithArray:urlComponents.queryItems];
+        [items addObject:[NSURLQueryItem queryItemWithName:@"input" value:inputType]];
+        urlComponents.queryItems = items;
+    }
+    
+    NSMutableURLRequest* req = [NSMutableURLRequest requestWithURL:urlComponents.URL];
     [req setCachePolicy:NSURLRequestReloadIgnoringLocalCacheData];
     [req setTimeoutInterval:30.0];
     [req setValue:[NSString stringWithFormat:@"Bearer %@", self.accessToken] forHTTPHeaderField:@"Authorization"];
