@@ -160,7 +160,7 @@
                     if ([self.customData isKindOfClass:[WitSession class]]) {
                         [[Wit sharedInstance] converseWithString:[self fixGermanNumbers: result.bestTranscription.formattedString] witSession:self.customData];
                     } else {
-                        [[Wit sharedInstance] interpretString:[self fixGermanNumbers: result.bestTranscription.formattedString] customData:nil inputType:@"speech"];
+                        [[Wit sharedInstance] interpretString:[self fixGermanNumbers: result.bestTranscription.formattedString] customData:nil urlQueryItems:@[[NSURLQueryItem queryItemWithName:@"input" value:@"speech" ]]];
                     }
                     
                 }

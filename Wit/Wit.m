@@ -73,18 +73,16 @@
 
 
 - (void)interpretString:(NSString *) string customData:(id)customData  {
-    [self interpretString:string customData:customData inputType:nil];
+    [self interpretString:string customData:customData urlQueryItems:nil];
 }
-- (void)interpretString:(NSString *) string customData:(id)customData inputType: (NSString *) inputType {
+- (void)interpretString:(NSString *) string customData:(id)customData urlQueryItems: (NSArray *) urlQueryItems {
     NSDictionary *context = [self.wcs contextFillup:self.state.context];
     NSDate *start = [NSDate date];
     NSString *contextEncoded = [WITContextSetter jsonEncode:context];
     NSString *urlString = [NSString stringWithFormat:@"%@/message?q=%@&v=%@&context=%@&verbose=true", self.serverAddress, urlencodeString(string), kWitAPIVersion, contextEncoded];
     NSURLComponents *urlComponents = [NSURLComponents componentsWithString:urlString];
-    if (inputType) {
-        NSMutableArray *items = [NSMutableArray arrayWithArray:urlComponents.queryItems];
-        [items addObject:[NSURLQueryItem queryItemWithName:@"input" value:inputType]];
-        urlComponents.queryItems = items;
+    if (urlQueryItems) {
+        urlComponents.queryItems = urlQueryItems;
     }
     
     NSMutableURLRequest* req = [NSMutableURLRequest requestWithURL:urlComponents.URL];
