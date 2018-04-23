@@ -82,7 +82,8 @@
     NSString *urlString = [NSString stringWithFormat:@"%@/message?q=%@&v=%@&context=%@&verbose=true", self.serverAddress, urlencodeString(string), kWitAPIVersion, contextEncoded];
     NSURLComponents *urlComponents = [NSURLComponents componentsWithString:urlString];
     if (urlQueryItems) {
-        urlComponents.queryItems = urlQueryItems;
+        NSMutableArray *tempArray = [NSMutableArray arrayWithArray:urlComponents.queryItems];
+        urlComponents.queryItems = [tempArray arrayByAddingObjectsFromArray:urlQueryItems];
     }
     
     NSMutableURLRequest* req = [NSMutableURLRequest requestWithURL:urlComponents.URL];
