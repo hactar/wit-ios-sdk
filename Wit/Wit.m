@@ -76,10 +76,8 @@
     [self interpretString:string customData:customData urlQueryItems:nil];
 }
 - (void)interpretString:(NSString *) string customData:(id)customData urlQueryItems: (NSArray *) urlQueryItems {
-    NSDictionary *context = [self.wcs contextFillup:self.state.context];
     NSDate *start = [NSDate date];
-    NSString *contextEncoded = [WITContextSetter jsonEncode:context];
-    NSString *urlString = [NSString stringWithFormat:@"%@/message?q=%@&v=%@&context=%@&verbose=true", self.serverAddress, urlencodeString(string), kWitAPIVersion, contextEncoded];
+    NSString *urlString = [NSString stringWithFormat:@"%@/message?q=%@&v=%@&verbose=true", self.serverAddress, urlencodeString(string), kWitAPIVersion];
     NSURLComponents *urlComponents = [NSURLComponents componentsWithString:urlString];
     if (urlQueryItems) {
         NSMutableArray *tempArray = [NSMutableArray arrayWithArray:urlComponents.queryItems];
