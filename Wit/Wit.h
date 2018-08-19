@@ -217,7 +217,7 @@
  */
 - (void)witDidGraspIntent:(NSArray *)outcomes messageId:(NSString *)messageId customData:(id)customData error:(NSError *)error;
 
-- (void)witDidGraspIntent:(NSArray *)outcomes messageId:(NSString *)messageId customData:(id)customData error:(NSError *)error fullResponse: (NSDictionary *) response;
+- (void)witDidGraspIntent:(NSArray *)outcomes messageId:(NSString *)messageId customData:(id)customData error:(NSError *)error fullResponse: (NSDictionary *) response fullData: (NSData *) data;
 
 /**
  * When using the hands free voice activity detection option (WITVadConfigFull), this callback will be called when the microphone started to listen

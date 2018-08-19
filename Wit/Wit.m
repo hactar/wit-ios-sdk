@@ -156,7 +156,7 @@
     }
     
     if (connectionError) {
-        [self gotResponse:nil customData:customData type:nil error:connectionError];
+        [self gotResponse:nil responseData: nil customData:customData type:nil error:connectionError];
         return;
     }
     
@@ -165,21 +165,21 @@
                                                            options:0
                                                              error:&serializationError];
     if (serializationError) {
-        [self gotResponse:nil customData:customData type:nil error:serializationError];
+        [self gotResponse:nil responseData: nil customData:customData type:nil error:serializationError];
         return;
     }
     
     if (object[@"error"]) {
         NSDictionary *infos = @{NSLocalizedDescriptionKey: object[@"error"],
                                 kWitKeyError: object[@"code"]};
-        [self gotResponse:nil customData:customData type:nil
+        [self gotResponse:nil responseData: nil customData:customData type:nil
                     error:[NSError errorWithDomain:@"WitProcessing"
                                               code:1
                                           userInfo:infos]];
         return;
     }
     
-    [self gotResponse:object customData:customData type:type error:nil];
+    [self gotResponse:object responseData:data customData:customData type:type error:nil];
 }
 
 
@@ -193,17 +193,15 @@
 }
 
 #pragma mark - WITUploaderDelegate
-- (void)gotResponse:(NSDictionary*)resp customData:(id)customData type:(NSString *)type error:(NSError*)err {
+- (void)gotResponse:(NSDictionary*)resp responseData: (NSData *) data customData:(id)customData type:(NSString *)type error:(NSError*)err {
     if (err) {
         [self error:err customData:customData];
         return;
     }
     if([type isEqual:@"message"]){
-        [self processMessage:resp customData:customData];
+        [self processMessage:resp responseData: data customData:customData];
         
         
-    } else if([type isEqual: @"converse"]){
-        [self processConverse:resp customData:customData];
     }
     
 }
@@ -214,7 +212,7 @@
     [self error:e customData:customData];
 }
 
-- (void)processMessage:(NSDictionary *)resp customData:(id)customData {
+- (void)processMessage:(NSDictionary *)resp responseData: (NSData *) data customData:(id)customData {
     id error = resp[kWitKeyError];
     if (error) {
         NSString *errorDesc = [NSString stringWithFormat:@"Code %@: %@", error[@"code"], error[@"message"]];
@@ -227,8 +225,8 @@
     }
     NSString *messageId = resp[kWitKeyMsgId];
     
-    if ([self.delegate respondsToSelector:@selector(witDidGraspIntent:messageId:customData:error:fullResponse:)]) {
-        [self.delegate witDidGraspIntent:outcomes messageId:messageId customData:customData error:error fullResponse: resp];
+    if ([self.delegate respondsToSelector:@selector(witDidGraspIntent:messageId:customData:error:fullResponse:fullData:)]) {
+        [self.delegate witDidGraspIntent:outcomes messageId:messageId customData:customData error:error fullResponse: resp fullData:data];
     } else {
         [self.delegate witDidGraspIntent:outcomes messageId:messageId customData:customData error:error];
     }
@@ -276,8 +274,8 @@
     if ([customData isKindOfClass:[WitSession class]]) {
         [self.delegate didReceiveConverseError:e witSession:customData];
     } else {
-        if ([self.delegate respondsToSelector:@selector(witDidGraspIntent:messageId:customData:error:fullResponse:)]) {
-            [self.delegate witDidGraspIntent:nil messageId:nil customData:customData error:e fullResponse:nil];
+        if ([self.delegate respondsToSelector:@selector(witDidGraspIntent:messageId:customData:error:fullResponse:fullData:)]) {
+            [self.delegate witDidGraspIntent:nil messageId:nil customData:customData error:e fullResponse:nil fullData:nil];
         }
     }
     
@@ -386,7 +384,7 @@
 }
 
 - (void)recordingSessionGotResponse:(NSDictionary *)resp customData:(id)customData error:(NSError *)err sender:(id) sender {
-    [self gotResponse:resp customData:customData type:nil error:err];
+    [self gotResponse:resp responseData: nil customData:customData type:nil error:err];
     if (self.recordingSession == sender) {
         self.recordingSession = nil;
     }
