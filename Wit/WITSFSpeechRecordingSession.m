@@ -161,7 +161,7 @@
                     if ([self.customData isKindOfClass:[WitSession class]]) {
                         [[Wit sharedInstance] converseWithString:[self fixGermanNumbers: result.bestTranscription.formattedString] witSession:self.customData];
                     } else {
-                        [[Wit sharedInstance] interpretString:[self fixGermanNumbers: result.bestTranscription.formattedString] customData:nil urlQueryItems:@[[NSURLQueryItem queryItemWithName:@"input" value:@"speech" ], [NSURLQueryItem queryItemWithName:@"language" value: localeString.uppercaseString ] ]];
+                        [[Wit sharedInstance] interpretString:[self fixGermanNumbers: result.bestTranscription.formattedString] customData:nil urlQueryItems:@[[NSURLQueryItem queryItemWithName:@"input" value:@"speech" ], [NSURLQueryItem queryItemWithName:@"sourcelanguage" value: localeString.uppercaseString ], [NSURLQueryItem queryItemWithName:@"targetlanguage" value: localeString.uppercaseString ] ]];
                     }
                     
                 }
