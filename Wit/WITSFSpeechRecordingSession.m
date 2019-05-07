@@ -27,6 +27,7 @@
     NSTimer *vadTimer;
     NSTimeInterval noWordsSpokenTime;
     BOOL wordSpoken;
+    NSString *localeString;
     
 }
 
@@ -38,7 +39,7 @@
         self.delegate = delegate;
         _vadEnabled = vadEnabled;
         self.witToken = witToken;
-        
+        localeString = locale;
         
         speechRecognizer = [[SFSpeechRecognizer alloc] initWithLocale:[NSLocale localeWithLocaleIdentifier:locale]];
         audioEngine = [[AVAudioEngine alloc] init];
@@ -160,7 +161,7 @@
                     if ([self.customData isKindOfClass:[WitSession class]]) {
                         [[Wit sharedInstance] converseWithString:[self fixGermanNumbers: result.bestTranscription.formattedString] witSession:self.customData];
                     } else {
-                        [[Wit sharedInstance] interpretString:[self fixGermanNumbers: result.bestTranscription.formattedString] customData:nil urlQueryItems:@[[NSURLQueryItem queryItemWithName:@"input" value:@"speech" ]]];
+                        [[Wit sharedInstance] interpretString:[self fixGermanNumbers: result.bestTranscription.formattedString] customData:nil urlQueryItems:@[[NSURLQueryItem queryItemWithName:@"input" value:@"speech" ], [NSURLQueryItem queryItemWithName:@"language" value: localeString.uppercaseString ] ]];
                     }
                     
                 }
